@@ -55,6 +55,24 @@ def handle_message(event_data):
     thread.start()
     return Response(status=200)
 
+@slack_events_adapter.on("message")
+def handle_message(event_data):
+    def send_reply(value):
+        event_data = value
+        message = event_data["event"]
+        if message.get("subtype") is None:
+            command = message.get("text")
+            channel_id = message["channel"]
+            if command.lower() == 'tunnel an':
+                message = (
+                    "<@%s>! taucht in den Tunnel "
+                    % message["user"]  # noqa
+                )
+                slack_client.chat_postMessage(channel=channel_id, text=message)
+                # GPIO Handling should happen here
+    thread = Thread(target=send_reply, kwargs={"value": event_data})
+    thread.start()
+    return Response(status=200)
 
 # Start the server on port 3000
 if __name__ == "__main__":
