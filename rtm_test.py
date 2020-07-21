@@ -15,6 +15,10 @@ greetings = ["hi", "hello", "hello there", "hey"]
 SLACK_SIGNING_SECRET = os.environ['SLACK_SIGNING_SECRET']
 slack_token = os.environ['SLACK_BOT_TOKEN']
 VERIFICATION_TOKEN = os.environ['VERIFICATION_TOKEN']
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(23,GPIO.OUT)
+GPIO.setup(18,GPIO.OUT)
 
 #instantiating slack client
 slack_client = WebClient(slack_token)
@@ -66,15 +70,37 @@ def handle_message(event_data):
             command = message.get("text")
             channel_id = message["channel"]
             if command.lower() == 'tunnel an':
+                GPIO.output(23,GPIO.HIGH)
                 message = (
                     "<@%s>! taucht in den Tunnel "
                     % message["user"]  # noqa
                 )
                 slack_client.chat_postMessage(channel=channel_id, text=message)
                 # GPIO Handling should happen here
-                GPIO.setmode(GPIO.BCM)
-                GPIO.setwarnings(False)
-                GPIO.setup(23,GPIO.OUT)
+            if command.lower() == 'tunnel aus':
+                GPIO.output(23,GPIO.LOW)
+                message = (
+                    "<@%s>! hat das Ende am Licht des Tunnels gesehen und ist wieder da "
+                    % message["user"]
+                )
+                slack_client.chat_postMessage(channel=channel_id, text=message)
+                # GPIO Handling should happen here
+            if command.lower() == 'call an':
+                GPIO.output(18,GPIO.HIGH)
+                message = (
+                    "psst: <@%s>! telefoniert"
+                    % message["user"]
+                )
+                slack_client.chat_postMessage(channel=channel_id, text=message)
+                # GPIO Handling should happen here
+            if command.lower() == 'call aus':
+                GPIO.output(18,GPIO.LOW)
+                message = (
+                    "Endlich: <@%s>! :tada: hat aufgehört zu telefonieren"
+                    % message["user"]
+                )
+                slack_client.chat_postMessage(channel=channel_id, text=message)
+                # GPIO Handling should happen here
     thread = Thread(target=send_reply, kwargs={"value": event_data})
     thread.start()
     return Response(status=200)
