@@ -4,6 +4,8 @@ import os
 from threading import Thread
 from slack import WebClient
 
+import RPi.GPIO as GPIO
+import time
 
 # This `app` represents your existing Flask app
 app = Flask(__name__)
@@ -70,6 +72,9 @@ def handle_message(event_data):
                 )
                 slack_client.chat_postMessage(channel=channel_id, text=message)
                 # GPIO Handling should happen here
+                GPIO.setmode(GPIO.BCM)
+                GPIO.setwarnings(False)
+                GPIO.setup(23,GPIO.OUT)
     thread = Thread(target=send_reply, kwargs={"value": event_data})
     thread.start()
     return Response(status=200)
